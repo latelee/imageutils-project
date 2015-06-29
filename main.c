@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
     sprintf(jpg_pic, "test%d.jpg", width);
     sprintf(bmp_pic, "b%d.bmp", width);
 
-    bmp_to_jpg(src_pic, jpg_pic);
-    jpg_to_bmp(jpg_pic, bmp_pic);
+    bmp_to_jpg1(src_pic, jpg_pic);
+    //jpg_to_bmp1(jpg_pic, bmp_pic);
 
     return 0;
 }

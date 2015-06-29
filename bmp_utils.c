@@ -9,6 +9,7 @@
 // ×¢£ºÖ»Õë¶Ô24Î»Í¼Æ¬
 int analyse_bmp_file(const char* bmp_file)
 {
+#if 0
     FILE* fp;
     BITMAPFILEHEADER bmpHeader;
     BITMAPINFOHEADER bmpInfo;
@@ -95,12 +96,14 @@ int analyse_bmp_file(const char* bmp_file)
         printf("palette:\n");
         //dump(palette, paltette_len);
     }
+#endif
     return 0;
 }
 
 int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
                   int* size, int* width, int* height)
 {
+    int ret = 0;
     FILE* fp;
     BITMAPFILEHEADER bmpHeader;
     BITMAPINFOHEADER bmpInfo;
@@ -122,8 +125,19 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         return -1;
     }
 
-    fread(&bmpHeader, 1, sizeof(BITMAPFILEHEADER), fp);
-    fread(&bmpInfo, 1, sizeof(BITMAPINFOHEADER), fp);
+    ret = fread(&bmpHeader, 1, sizeof(BITMAPFILEHEADER), fp);
+    if (ret != sizeof(BITMAPFILEHEADER))
+    {
+        printf("read BITMAPFILEHEADER failed.\n");
+        return -1;
+    }
+
+    ret = fread(&bmpInfo, 1, sizeof(BITMAPINFOHEADER), fp);
+    if (ret != sizeof(BITMAPINFOHEADER))
+    {
+        printf("read BITMAPINFOHEADER failed read: %d %d.\n", ret, sizeof(BITMAPINFOHEADER));
+        return -1;
+    }
 
     if (bmpHeader.bfType != (('M' << 8) | 'B'))
     {
@@ -180,7 +194,7 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     }
 
     printf("debug--:\nfile size: %d rgb size: %d %d stride byte: %d padding: %d BitCount: %d\n", 
-        bmpHeader.bfSize, rgb_size, stride_byte*tmp_height, stride_byte, padding, bmpInfo.biBitCount);
+        (int)bmpHeader.bfSize, rgb_size, stride_byte*tmp_height, stride_byte, padding, bmpInfo.biBitCount);
 
     if (color_num != 0)
     {
@@ -200,7 +214,12 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     for (i = 0; i < tmp_height; i++)
     {
         tmp_buf -= width_byte;
-        fread(tmp_buf, 1, width_byte, fp);
+        ret = fread(tmp_buf, 1, width_byte, fp);
+        if (ret != width_byte)
+        {
+            free(*rgb_buffer);
+            return -1;
+        }
         fseek(fp, padding, SEEK_CUR);
     }
 

@@ -76,12 +76,12 @@ all: $(target)
 
 $(target): $(OBJ_C) $(OBJ_CPP)
 	@echo "Generating executable file..." $(notdir $(target))
-	$(CXX) $(CFLAGS) $^ -o $(target) $(LDFLAGS)
+	@$(CXX) $(CFLAGS) $^ -o $(target) $(LDFLAGS)
 
 # make all .c or .cpp
 %.o: %.c
 	@echo "Compiling: " $(addsuffix .c, $(basename $(notdir $@)))
-	@$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	@echo "Compiling: " $(addsuffix .cpp, $(basename $(notdir $@)))
