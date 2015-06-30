@@ -65,6 +65,11 @@ int write_jpeg_file(const char* jpeg_file, unsigned char* rgb_buffer, int width,
  */
 int jpeg2rgb(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buffer, int* size, int* width, int* height);
 
+// 读取jpeg头部信息
+int jpeg_header(unsigned char* jpeg_buffer, int jpeg_size, int* width, int* height, int* components);
+
+int jpeg2rgb1(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buffer, int* size);
+
 /**
  * 利用libjpeg将缓冲区的RGB转换成JPEG 压缩为JPEG
  * 

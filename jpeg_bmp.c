@@ -66,6 +66,55 @@ int jpg_to_bmp1(const char* jpg_file, const char* bmp_file)
     return 0;
 }
 
+int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
+{
+    int width, height, components;
+    FILE* fp = NULL;
+    unsigned char* jpeg_buffer = NULL;
+    unsigned int jpeg_size = 0;
+    size_t ret = 0;
+    
+    unsigned char* rgb_buffer = NULL;
+    int rgb_size = 0;
+    
+    fp = fopen(jpg_file, "rb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", jpg_file);
+        return -1;
+    }
+    
+    fseek(fp, 0L, SEEK_END);
+    jpeg_size = ftell(fp);
+    rewind(fp);
+
+    jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
+    if (jpeg_buffer == NULL)
+    {
+        return -1;
+    }
+    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (ret != jpeg_size)
+    {
+        return -1;
+    }
+    
+    jpeg_header(jpeg_buffer, jpeg_size, &width, &height, &components);
+    
+    rgb_size = width * height * components;
+    rgb_buffer = (unsigned char *)malloc(sizeof(char) * rgb_size);
+
+    printf("read jpeg header %d %d %d total: %d\n", width, height, components, rgb_size);
+    
+    jpeg2rgb1(jpeg_buffer, jpeg_size, rgb_buffer, &rgb_size);
+    
+    swap_rgb(rgb_buffer, rgb_size);
+
+    write_bmp_file(bmp_file, rgb_buffer, width, height);
+
+    return 0;
+}
+
 int bmp_to_jpg(const char* bmp_file, const char* jpg_file)
 {
     unsigned char* buffer = NULL;
