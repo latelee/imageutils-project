@@ -2,33 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
-#include <math.h>
-#include <sys/time.h>
-#include <time.h>
+//#include <math.h>
+
+#include "jpeg-utils.h"
 
 // jpeg库头文件必须放到stdio.h后面
 #include "libjpeg/include/jpeglib.h"
 #include "libjpeg/include/jerror.h"
 
-#if 01
-unsigned int get_tick_count()
-{
-#ifdef WIN32
-    return GetTickCount();
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-// 注：需rt库
-#if 0
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    unsigned int time = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    return time;
-#endif
-}
-#endif
 
 struct my_error_mgr {
   struct jpeg_error_mgr pub;
