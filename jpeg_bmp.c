@@ -142,7 +142,7 @@ int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
 
 int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
 {
-    int width, height, components, subsample, colorspace;
+    int width, height, subsample, colorspace;
     FILE* fp = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned int jpeg_size = 0;
@@ -173,18 +173,14 @@ int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
         return -1;
     }
     
-    jpeg_header(jpeg_buffer, jpeg_size, &width, &height, &components);
-    printf("read jpeg header %d %d %d total: %d\n", width, height, components, rgb_size);
     tjpeg_header(jpeg_buffer, jpeg_size, &width, &height, &subsample, &colorspace);
     
-    rgb_size = width * height * colorspace;
+    rgb_size = width * height * 3;
     rgb_buffer = (unsigned char *)malloc(sizeof(char) * rgb_size);
 
     printf("read jpeg header %d %d %d %d total: %d\n", width, height, subsample, colorspace, rgb_size);
-
-    return 0;
-
-    jpeg2rgb1(jpeg_buffer, jpeg_size, rgb_buffer, &rgb_size);
+    
+    tjpeg2rgb(jpeg_buffer, jpeg_size, rgb_buffer, &rgb_size);
     
     swap_rgb(rgb_buffer, rgb_size);
 

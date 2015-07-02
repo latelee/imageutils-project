@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     #endif
     //jpg_to_bmp1(jpg_pic, bmp_pic);
 
-    jpg_to_bmp2(jpg_pic, bmp_pic);
+    //jpg_to_bmp2(jpg_pic, bmp_pic);
     jpg_to_bmp3(jpg_pic, bmp_pic);
     
     
