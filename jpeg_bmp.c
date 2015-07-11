@@ -189,6 +189,53 @@ int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
     return 0;
 }
 
+int jpg_to_bmp4(const char* jpg_file, const char* bmp_file)
+{
+    int width, height, subsample, colorspace;
+    FILE* fp = NULL;
+    unsigned char* jpeg_buffer = NULL;
+    unsigned int jpeg_size = 0;
+    size_t ret = 0;
+    
+    unsigned char* rgb_buffer = NULL;
+    int rgb_size = 0;
+    
+    fp = fopen(jpg_file, "rb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", jpg_file);
+        return -1;
+    }
+    
+    fseek(fp, 0L, SEEK_END);
+    jpeg_size = ftell(fp);
+    rewind(fp);
+
+    jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
+    if (jpeg_buffer == NULL)
+    {
+        return -1;
+    }
+    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (ret != jpeg_size)
+    {
+        return -1;
+    }
+    
+    tjpeg_header(jpeg_buffer, jpeg_size, &width, &height, &subsample, &colorspace);
+
+    printf("read jpeg header %d %d %d %d total: %d\n", width, height, subsample, colorspace, rgb_size);
+    
+    tjpeg2rgb_1(jpeg_buffer, jpeg_size, &rgb_buffer, &rgb_size);
+    
+    swap_rgb(rgb_buffer, rgb_size);
+
+    write_bmp_file(bmp_file, rgb_buffer, width, height);
+
+    return 0;
+}
+
+
 int bmp_to_jpg(const char* bmp_file, const char* jpg_file)
 {
     unsigned char* buffer = NULL;
@@ -274,5 +321,204 @@ int bmp_to_jpg2(const char* bmp_file, const char* jpg_file)
     free(buffer);
     free(jpg_buffer);
 
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////
+
+int jpg_to_yuv(const char* jpg_file, const char* yuv_file)
+{
+    FILE* fp = NULL;
+    unsigned char* jpeg_buffer = NULL;
+    unsigned int jpeg_size = 0;
+    size_t ret = 0;
+    int yuv_type = 0;
+    
+    unsigned char* yuv_buffer = NULL;
+    int yuv_size = 0;
+    
+    fp = fopen(jpg_file, "rb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", jpg_file);
+        return -1;
+    }
+    
+    fseek(fp, 0L, SEEK_END);
+    jpeg_size = ftell(fp);
+    rewind(fp);
+
+    jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
+    if (jpeg_buffer == NULL)
+    {
+        return -1;
+    }
+    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (ret != jpeg_size)
+    {
+        return -1;
+    }
+    
+    int a = get_tick_count();
+
+    tjpeg2yuv(jpeg_buffer, jpeg_size, &yuv_buffer, &yuv_size, &yuv_type);
+        
+    int b = get_tick_count();
+
+    printf("yuv size: %d subsample: %d time: %d\n", yuv_size, yuv_type,  b-a);
+
+    fp = fopen(yuv_file, "wb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", yuv_file);
+        return -1;
+    }
+    fwrite(yuv_buffer, 1, yuv_size, fp);
+
+    free(yuv_buffer);
+    return 0;
+}
+
+int yuv_to_jpg(const char* yuv_file, const char* jpg_file, int yuv_type)
+{
+    FILE* fp = NULL;
+    unsigned char* yuv_buffer = NULL;
+    int yuv_size = 0;
+    
+    unsigned char* jpeg_buffer = NULL;
+    int jpeg_size = 0;
+
+    size_t ret = 0;
+    //int yuv_type = 1;
+    
+    fp = fopen(yuv_file, "rb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", yuv_file);
+        return -1;
+    }
+    
+    fseek(fp, 0L, SEEK_END);
+    yuv_size = ftell(fp);
+    rewind(fp);
+
+    yuv_buffer = (unsigned char *)malloc(sizeof(char) * yuv_size);
+    if (yuv_buffer == NULL)
+    {
+        return -1;
+    }
+    ret = fread(yuv_buffer, 1, yuv_size, fp);
+    if (ret != yuv_size)
+    {
+        return -1;
+    }
+    
+    printf("yuv size: %d\n", yuv_size);
+    int a = get_tick_count();
+
+    tyuv2jpeg(yuv_buffer, yuv_size, 1920, 1080, yuv_type, &jpeg_buffer, (unsigned long*)&jpeg_size, 100);
+        
+    int b = get_tick_count();
+
+    printf("jpeg size: %d time: %d\n", jpeg_size,  b-a);
+
+    fp = fopen(jpg_file, "wb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", jpg_file);
+        return -1;
+    }
+    fwrite(jpeg_buffer, 1, jpeg_size, fp);
+
+    free(jpeg_buffer);
+    return 0;
+}
+
+int bmp_to_yuv(const char* bmp_file, const char* yuv_file)
+{
+    FILE* fp = NULL;
+    unsigned char* buffer = NULL;
+    int size;
+    int width,height;
+    unsigned char* yuv_buffer = NULL;
+    int  yuv_size = 0;
+
+    read_bmp_file(bmp_file, &buffer, &size, &width, &height);
+    swap_rgb(buffer, size);
+    printf("size: %d, width: %d height: %d\n", size, width, height);
+
+    int a = get_tick_count();
+
+    trgb2yuv(buffer, width, height, &yuv_buffer, &yuv_size, 2);
+    
+    int b = get_tick_count();
+    
+    printf("got rgb size: %d time: %d\n", (int)yuv_size, b-a);
+
+    fp = fopen(yuv_file, "wb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", yuv_file);
+        return -1;
+    }
+    fwrite(yuv_buffer, 1, yuv_size, fp);
+
+    free(buffer);
+    free(yuv_buffer);
+
+    return 0;
+}
+
+int yuv_to_bmp(const char* yuv_file, const char* bmp_file, int yuv_type)
+{
+    FILE* fp = NULL;
+    unsigned char* yuv_buffer = NULL;
+    int yuv_size = 0;
+    
+    unsigned char* rgb_buffer = NULL;
+    int rgb_size = 0;
+
+    size_t ret = 0;
+    int width = 1920;
+    int height = 1080;
+    
+    //int yuv_type = 2;
+    
+    fp = fopen(yuv_file, "rb");
+    if (fp == NULL)
+    {
+        printf("open file %s failed.\n", yuv_file);
+        return -1;
+    }
+    
+    fseek(fp, 0L, SEEK_END);
+    yuv_size = ftell(fp);
+    rewind(fp);
+
+    yuv_buffer = (unsigned char *)malloc(sizeof(char) * yuv_size);
+    if (yuv_buffer == NULL)
+    {
+        return -1;
+    }
+    ret = fread(yuv_buffer, 1, yuv_size, fp);
+    if (ret != yuv_size)
+    {
+        return -1;
+    }
+    
+    printf("yuv size: %d\n", yuv_size);
+    int a = get_tick_count();
+
+    tyuv2rgb(yuv_buffer, yuv_size, width, height, yuv_type, &rgb_buffer, &rgb_size);
+        
+    int b = get_tick_count();
+
+    printf("rgb size: %d time: %d\n", rgb_size,  b-a);
+
+    swap_rgb(rgb_buffer, rgb_size);
+
+    write_bmp_file(bmp_file, rgb_buffer, width, height);
+
+    free(rgb_buffer);
     return 0;
 }

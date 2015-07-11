@@ -74,12 +74,12 @@ int read_jpeg_file(const char* jpeg_file, unsigned char** rgb_buffer, int* size,
     *size = rgb_size;
 
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-    
+
     *rgb_buffer = (unsigned char *)malloc(sizeof(char) * rgb_size);    // ·ÖÅä×ÜÄÚ´æ
-    
+
     printf("debug--:\nrgb_size: %d, size: %d w: %d h: %d row_stride: %d \n", rgb_size,
                 cinfo.image_width*cinfo.image_height*3,
-                cinfo.image_width, 
+                cinfo.image_width,
                 cinfo.image_height,
                 row_stride);
     tmp_buffer = *rgb_buffer;
@@ -162,7 +162,7 @@ int jpeg2rgb(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buffe
         printf("you need to alloc rgb buffer.\n");
         return -1;
     }
-    
+
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = my_error_exit;
 
@@ -191,14 +191,14 @@ int jpeg2rgb(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buffe
     {
         printf("rgb buffer to small, we need %d but has only: %d\n", rgb_size, *size);
     }
-    
+
     *size = rgb_size;
 
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
     printf("debug--:\nrgb_size: %d, size: %d w: %d h: %d row_stride: %d \n", rgb_size,
                 cinfo.image_width*cinfo.image_height*3,
-                cinfo.image_width, 
+                cinfo.image_width,
                 cinfo.image_height,
                 row_stride);
     tmp_buffer = rgb_buffer;
@@ -249,7 +249,7 @@ int jpeg_header(unsigned char* jpeg_buffer, int jpeg_size, int* width, int* heig
     *width = cinfo.output_width;
     *height = cinfo.output_height;
     *components = cinfo.output_components;
-    
+
     return 0;
 }
 
@@ -273,7 +273,7 @@ int jpeg2rgb1(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buff
         printf("you need to alloc rgb buffer.\n");
         return -1;
     }
-    
+
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = my_error_exit;
 
@@ -300,14 +300,14 @@ int jpeg2rgb1(unsigned char* jpeg_buffer, int jpeg_size, unsigned char* rgb_buff
     {
         printf("rgb buffer to small, we need %d but has only: %d\n", rgb_size, *size);
     }
-    
+
     *size = rgb_size;
 
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
     printf("debug--:\nrgb_size: %d, size: %d w: %d h: %d row_stride: %d \n", rgb_size,
                 cinfo.image_width*cinfo.image_height*3,
-                cinfo.image_width, 
+                cinfo.image_width,
                 cinfo.image_height,
                 row_stride);
     tmp_buffer = rgb_buffer;
@@ -337,7 +337,7 @@ int rgb2jpeg(unsigned char* rgb_buffer, int width, int height, int quality, unsi
         printf("you need a pointer for jpeg buffer.\n");
         return -1;
     }
-    
+
     cinfo.err = jpeg_std_error(&jerr);
 
     jpeg_create_compress(&cinfo);
