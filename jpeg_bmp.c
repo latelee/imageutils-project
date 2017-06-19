@@ -55,7 +55,8 @@ int jpg_to_bmp1(const char* jpg_file, const char* bmp_file)
     FILE* fp = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned int jpeg_size = 0;
-    size_t ret = 0;
+    unsigned int read_size = 0;
+    int ret = 0;
     
     unsigned char* rgb_buffer = NULL;
     int rgb_size = 512*512*3;
@@ -74,12 +75,14 @@ int jpg_to_bmp1(const char* jpg_file, const char* bmp_file)
     jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
     if (jpeg_buffer == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
-    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
-    if (ret != jpeg_size)
+    read_size = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (read_size != jpeg_size)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     rgb_buffer = (unsigned char *)malloc(sizeof(char) * rgb_size);
     jpeg2rgb(jpeg_buffer, jpeg_size, rgb_buffer, &rgb_size, &width, &height);
@@ -88,7 +91,14 @@ int jpg_to_bmp1(const char* jpg_file, const char* bmp_file)
 
     write_bmp_file(bmp_file, rgb_buffer, width, height);
 
-    return 0;
+end:
+    if (jpeg_buffer != NULL)
+    {
+        free(jpeg_buffer);
+        jpeg_buffer = NULL;
+    }
+    fclose(fp);
+    return ret;
 }
 
 int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
@@ -97,7 +107,8 @@ int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
     FILE* fp = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned int jpeg_size = 0;
-    size_t ret = 0;
+    unsigned int read_size = 0;
+    int ret = 0;
     
     unsigned char* rgb_buffer = NULL;
     int rgb_size = 0;
@@ -116,12 +127,14 @@ int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
     jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
     if (jpeg_buffer == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
-    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
-    if (ret != jpeg_size)
+    read_size = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (read_size != jpeg_size)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     
     jpeg_header(jpeg_buffer, jpeg_size, &width, &height, &components);
@@ -137,7 +150,14 @@ int jpg_to_bmp2(const char* jpg_file, const char* bmp_file)
 
     write_bmp_file(bmp_file, rgb_buffer, width, height);
 
-    return 0;
+end:
+    if (jpeg_buffer != NULL)
+    {
+        free(jpeg_buffer);
+        jpeg_buffer = NULL;
+    }
+    fclose(fp);
+    return ret;
 }
 
 int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
@@ -146,7 +166,8 @@ int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
     FILE* fp = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned int jpeg_size = 0;
-    size_t ret = 0;
+    unsigned int read_size = 0;
+    int ret = 0;
     
     unsigned char* rgb_buffer = NULL;
     int rgb_size = 0;
@@ -165,12 +186,14 @@ int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
     jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
     if (jpeg_buffer == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
-    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
-    if (ret != jpeg_size)
+    read_size = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (read_size != jpeg_size)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     
     tjpeg_header(jpeg_buffer, jpeg_size, &width, &height, &subsample, &colorspace);
@@ -186,7 +209,14 @@ int jpg_to_bmp3(const char* jpg_file, const char* bmp_file)
 
     write_bmp_file(bmp_file, rgb_buffer, width, height);
 
-    return 0;
+end:
+    if (jpeg_buffer != NULL)
+    {
+        free(jpeg_buffer);
+        jpeg_buffer = NULL;
+    }
+    fclose(fp);
+    return ret;
 }
 
 int jpg_to_bmp4(const char* jpg_file, const char* bmp_file)
@@ -195,7 +225,8 @@ int jpg_to_bmp4(const char* jpg_file, const char* bmp_file)
     FILE* fp = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned int jpeg_size = 0;
-    size_t ret = 0;
+    unsigned int read_size = 0;
+    int ret = 0;
     
     unsigned char* rgb_buffer = NULL;
     int rgb_size = 0;
@@ -214,12 +245,14 @@ int jpg_to_bmp4(const char* jpg_file, const char* bmp_file)
     jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
     if (jpeg_buffer == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
-    ret = fread(jpeg_buffer, 1, jpeg_size, fp);
-    if (ret != jpeg_size)
+    read_size = fread(jpeg_buffer, 1, jpeg_size, fp);
+    if (read_size != jpeg_size)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     
     tjpeg_header(jpeg_buffer, jpeg_size, &width, &height, &subsample, &colorspace);
@@ -232,7 +265,14 @@ int jpg_to_bmp4(const char* jpg_file, const char* bmp_file)
 
     write_bmp_file(bmp_file, rgb_buffer, width, height);
 
-    return 0;
+end:
+    if (jpeg_buffer != NULL)
+    {
+        free(jpeg_buffer);
+        jpeg_buffer = NULL;
+    }
+    fclose(fp);
+    return ret;
 }
 
 
@@ -286,6 +326,7 @@ int bmp_to_jpg1(const char* bmp_file, const char* jpg_file)
     free(buffer);
     free(jpg_buffer);
 
+    fclose(fp);
     return 0;
 }
 
@@ -321,6 +362,7 @@ int bmp_to_jpg2(const char* bmp_file, const char* jpg_file)
     free(buffer);
     free(jpg_buffer);
 
+    fclose(fp);
     return 0;
 }
 
@@ -351,11 +393,14 @@ int jpg_to_yuv(const char* jpg_file, const char* yuv_file)
     jpeg_buffer = (unsigned char *)malloc(sizeof(char) * jpeg_size);
     if (jpeg_buffer == NULL)
     {
+        fclose(fp);
         return -1;
     }
     ret = fread(jpeg_buffer, 1, jpeg_size, fp);
     if (ret != jpeg_size)
     {
+        fclose(fp);
+        free(jpeg_buffer);
         return -1;
     }
     
@@ -367,6 +412,8 @@ int jpg_to_yuv(const char* jpg_file, const char* yuv_file)
 
     printf("yuv size: %d subsample: %d time: %d\n", yuv_size, yuv_type,  b-a);
 
+    fclose(fp);
+    
     fp = fopen(yuv_file, "wb");
     if (fp == NULL)
     {
@@ -376,6 +423,7 @@ int jpg_to_yuv(const char* jpg_file, const char* yuv_file)
     fwrite(yuv_buffer, 1, yuv_size, fp);
 
     free(yuv_buffer);
+    fclose(fp);
     return 0;
 }
 
@@ -405,11 +453,14 @@ int yuv_to_jpg(const char* yuv_file, const char* jpg_file, int yuv_type)
     yuv_buffer = (unsigned char *)malloc(sizeof(char) * yuv_size);
     if (yuv_buffer == NULL)
     {
+        fclose(fp);
         return -1;
     }
     ret = fread(yuv_buffer, 1, yuv_size, fp);
     if (ret != yuv_size)
     {
+        fclose(fp);
+        free(yuv_buffer);
         return -1;
     }
     
@@ -422,6 +473,8 @@ int yuv_to_jpg(const char* yuv_file, const char* jpg_file, int yuv_type)
 
     printf("jpeg size: %d time: %d\n", jpeg_size,  b-a);
 
+    fclose(fp);
+    
     fp = fopen(jpg_file, "wb");
     if (fp == NULL)
     {
@@ -430,6 +483,7 @@ int yuv_to_jpg(const char* yuv_file, const char* jpg_file, int yuv_type)
     }
     fwrite(jpeg_buffer, 1, jpeg_size, fp);
 
+    fclose(fp);
     free(jpeg_buffer);
     return 0;
 }
@@ -463,6 +517,7 @@ int bmp_to_yuv(const char* bmp_file, const char* yuv_file)
     }
     fwrite(yuv_buffer, 1, yuv_size, fp);
 
+    fclose(fp);
     free(buffer);
     free(yuv_buffer);
 
@@ -498,11 +553,14 @@ int yuv_to_bmp(const char* yuv_file, const char* bmp_file, int yuv_type)
     yuv_buffer = (unsigned char *)malloc(sizeof(char) * yuv_size);
     if (yuv_buffer == NULL)
     {
+        fclose(fp);
         return -1;
     }
     ret = fread(yuv_buffer, 1, yuv_size, fp);
     if (ret != yuv_size)
     {
+        fclose(fp);
+        free(yuv_buffer);
         return -1;
     }
     
@@ -519,6 +577,8 @@ int yuv_to_bmp(const char* yuv_file, const char* bmp_file, int yuv_type)
 
     write_bmp_file(bmp_file, rgb_buffer, width, height);
 
+    fclose(fp);
     free(rgb_buffer);
+    free(yuv_buffer);
     return 0;
 }

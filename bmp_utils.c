@@ -104,7 +104,7 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
                   int* size, int* width, int* height)
 {
     int ret = 0;
-    FILE* fp;
+    FILE* fp = NULL;
     BITMAPFILEHEADER bmpHeader;
     BITMAPINFOHEADER bmpInfo;
     int tmp_width = 0;
@@ -129,20 +129,23 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     if (ret != sizeof(BITMAPFILEHEADER))
     {
         printf("read BITMAPFILEHEADER failed.\n");
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     ret = fread(&bmpInfo, 1, sizeof(BITMAPINFOHEADER), fp);
     if (ret != sizeof(BITMAPINFOHEADER))
     {
         printf("read BITMAPINFOHEADER failed read: %d %d.\n", ret, sizeof(BITMAPINFOHEADER));
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     if (bmpHeader.bfType != (('M' << 8) | 'B'))
     {
         printf("Sorry, not bmp picture.\n");
-        return -1;
+        ret = -1;
+        goto end;
     }
     tmp_width = bmpInfo.biWidth;
     tmp_height = (int)fabs((double)bmpInfo.biHeight);   // 预防高为负数的情况
@@ -190,7 +193,8 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     // 计算偏移量与实际偏移量比较，如不等，颜色数出错
     if (bmpHeader.bfOffBits != sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + palette_len)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     printf("debug--:\nfile size: %d rgb size: %d %d stride byte: %d res: %dx%d padding: %d BitCount: %d\n", 
@@ -206,7 +210,8 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     *rgb_buffer = (unsigned char *)malloc(sizeof(char) * rgb_size);
     if (*rgb_buffer == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     
     if (bmpInfo.biHeight > 0)
@@ -216,19 +221,13 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         tmp_buf = *rgb_buffer + rgb_size;
         for (i = 0; i < tmp_height; i++)
         {
-            tmp_buf -= width_byte;
-            ret = fread(tmp_buf, 1, width_byte, fp);
-            if (ret != width_byte)
-            {
-                free(*rgb_buffer);
-                return -1;
-            }
-            fseek(fp, padding, SEEK_CUR);
+            free(*rgb_buffer);
+            ret = -1;
+            goto end;
         }
     }
     else
     {
-        // 顺序读文件，读到的图像是倒立的
         unsigned char* tmp_buf = *rgb_buffer;
         size_t readByte = 0;
         for (int i = 0; i < tmp_height; i++)
@@ -239,7 +238,10 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         }
     }
 
-    return 0;
+
+end:
+    fclose(fp);
+    return ret;
 }
 
 int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, int height)
@@ -256,6 +258,7 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
     int padding = 0;
     unsigned char* tmp_buf = NULL;
     int i = 0;
+    int ret = 0;
 
     fp = fopen(bmp_file, "wb");
     if (fp == NULL)
@@ -300,7 +303,8 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
     tmp_buf = (unsigned char *)malloc(sizeof(char) * rgb_size);
     if (tmp_buf == NULL)
     {
-        return -1;
+        ret = -1;
+        goto end;
     }
     memset(tmp_buf, '\0', sizeof(char) * rgb_size);
     
@@ -328,9 +332,14 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
     fwrite(&bmpInfo, 1, sizeof(BITMAPINFOHEADER), fp);
     fwrite(tmp_buf, 1, rgb_size, fp);
 
-    free(tmp_buf);
+end:
+    if (tmp_buf != NULL)
+    {
+        free(tmp_buf);
+    }
+    fclose(fp);
 
-    return 0;
+    return ret;
 }
 
 // rgb --> bgr or
