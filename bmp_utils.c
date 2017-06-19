@@ -193,8 +193,8 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         return -1;
     }
 
-    printf("debug--:\nfile size: %d rgb size: %d %d stride byte: %d padding: %d BitCount: %d\n", 
-        (int)bmpHeader.bfSize, rgb_size, stride_byte*tmp_height, stride_byte, padding, bmpInfo.biBitCount);
+    printf("debug--:\nfile size: %d rgb size: %d %d stride byte: %d res: %dx%d padding: %d BitCount: %d\n", 
+        (int)bmpHeader.bfSize, rgb_size, stride_byte*tmp_height, stride_byte, (int)bmpInfo.biWidth, (int)bmpInfo.biHeight, padding, bmpInfo.biBitCount);
 
     if (color_num != 0)
     {
@@ -208,32 +208,37 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
     {
         return -1;
     }
-    // 将读取的数据倒着存放到缓冲区(即BMP图像第一行数据放到缓冲区最后一行，等等)，
-    // 这样图像才是正常的，否则图像是倒立的
-    tmp_buf = *rgb_buffer + rgb_size;
-    for (i = 0; i < tmp_height; i++)
+    
+    if (bmpInfo.biHeight > 0)
     {
-        tmp_buf -= width_byte;
-        ret = fread(tmp_buf, 1, width_byte, fp);
-        if (ret != width_byte)
+        // 将读取的数据倒着存放到缓冲区(即BMP图像第一行数据放到缓冲区最后一行，等等)，
+        // 这样图像才是正常的，否则图像是倒立的
+        tmp_buf = *rgb_buffer + rgb_size;
+        for (i = 0; i < tmp_height; i++)
         {
-            free(*rgb_buffer);
-            return -1;
+            tmp_buf -= width_byte;
+            ret = fread(tmp_buf, 1, width_byte, fp);
+            if (ret != width_byte)
+            {
+                free(*rgb_buffer);
+                return -1;
+            }
+            fseek(fp, padding, SEEK_CUR);
         }
-        fseek(fp, padding, SEEK_CUR);
+    }
+    else
+    {
+        // 顺序读文件，读到的图像是倒立的
+        unsigned char* tmp_buf = *rgb_buffer;
+        size_t readByte = 0;
+        for (int i = 0; i < tmp_height; i++)
+        {
+            readByte += fread(tmp_buf, 1, width_byte, fp);
+            fseek(fp, padding, SEEK_CUR);
+            tmp_buf += width_byte;
+        }
     }
 
-#if 0
-    // 顺序读文件，读到的图像是倒立的
-    unsigned char* tmp_buf = *rgb_buffer;
-    size_t readByte = 0;
-    for (int i = 0; i < tmp_height; i++)
-    {
-        readByte += fread(tmp_buf, 1, width_byte, fp);
-        fseek(fp, padding, SEEK_CUR);
-        tmp_buf += width_byte;
-    }
-#endif
     return 0;
 }
 
@@ -265,7 +270,7 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
     // stride_byte = ((width * 24 + 31) >> 5) << 2;
     stride_byte = ALIGN(width*BPP/8, 4);
     width_byte = width*BPP/8;
-    rgb_size = stride_byte * height;  // 已考虑对齐
+    rgb_size = stride_byte * (int)fabs((double)height);  // 已考虑对齐 并且防止出现负数
 
     bmpHeader.bfType = ('M' << 8) | 'B';
     bmpHeader.bfSize = offset + rgb_size;    // BMP文件总大小
@@ -298,11 +303,25 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
         return -1;
     }
     memset(tmp_buf, '\0', sizeof(char) * rgb_size);
-    // 倒着拷贝到缓冲区
-    for (i = 0; i < height; i++)
+    
+    
+    // 有权威说法确认。。。
+    if (height > 0)
     {
-        // 每一行的实际数据为width * 3(R、G、B)
-        memcpy(tmp_buf + i * stride_byte, rgb_buffer + (height - i - 1) * width_byte, width_byte);
+        // 倒着拷贝到缓冲区
+        for (i = 0; i < height; i++)
+        {
+            // 每一行的实际数据为width * 3(R、G、B)
+            memcpy(tmp_buf + i * stride_byte, rgb_buffer + (height - i - 1) * width_byte, width_byte);
+        }
+    }
+    else
+    {
+        for (i = 0; i < -height; i++)
+        {
+            memcpy(tmp_buf + i * stride_byte, rgb_buffer + i * width_byte, width_byte);
+            //memcpy(tmp_buf + i * stride_byte, rgb_buffer + (-height - i - 1) * width_byte, width_byte);
+        }
     }
 
     fwrite(&bmpHeader, 1, sizeof(BITMAPFILEHEADER), fp);

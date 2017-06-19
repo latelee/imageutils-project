@@ -75,7 +75,7 @@ typedef struct tagBITMAPFILEHEADER {
 typedef struct tagBITMAPINFOHEADER{
     DWORD      biSize;          // 本结构体长度
     LONG       biWidth;         // 宽(单位像素)
-    LONG       biHeight;        // 高(单位像素)
+    LONG       biHeight;        // 高(单位像素) 负数表示图像是倒立的
     WORD       biPlanes;        // 为1
     WORD       biBitCount;      // 像素占用位数 1(2^1=2黑白二色)， 4(2^4=16色)，8(2^8=256色)，24(真彩色)，32
     DWORD      biCompression;   // 压缩类型，不压缩：BI_RGB(0)

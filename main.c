@@ -11,26 +11,26 @@ int main(int argc, char* argv[])
     char bmp_pic[32] = {0};
     int width = 0;
 
-    width = 512;
+    width = 1920;
 
     sprintf(src_pic, "test_%d.bmp", width);
-    sprintf(jpg_pic, "test_%d.jpg", width);
+    sprintf(jpg_pic, "test_out_%d.jpg", width);
     sprintf(bmp_pic, "test_a_%d.bmp", width);
 
-    //bmp_to_jpg1(src_pic, jpg_pic);
+    bmp_to_jpg1(src_pic, jpg_pic); return 0;
     //sprintf(jpg_pic, "test_%d_t.jpg", width);
     //bmp_to_jpg2(src_pic, jpg_pic);
 
-    //jpg_to_bmp1(jpg_pic, bmp_pic);
+    //jpg_to_bmp(jpg_pic, bmp_pic); return 0;
 
     //jpg_to_bmp2(jpg_pic, bmp_pic);
     //jpg_to_bmp3(jpg_pic, bmp_pic);
 
     //jpg_to_bmp4(jpg_pic, bmp_pic);
     
-    //sprintf(jpg_pic, "test_yuv_%d_420.jpg", width);
-    //sprintf(bmp_pic, "test_1920_420.yuv");
-    //jpg_to_yuv(jpg_pic, bmp_pic);
+    sprintf(jpg_pic, "3kx2k.jpg");
+    sprintf(bmp_pic, "test_3072x2048_yuv420.yuv");
+    jpg_to_yuv(jpg_pic, bmp_pic);
     //yuv_to_jpg(bmp_pic, jpg_pic, 2);
 
     //sprintf(jpg_pic, "test_%d.yuv", width);
