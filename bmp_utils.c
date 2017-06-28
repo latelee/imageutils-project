@@ -214,6 +214,7 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         goto end;
     }
     
+    // 正高，倒读
     if (bmpInfo.biHeight > 0)
     {
         // 将读取的数据倒着存放到缓冲区(即BMP图像第一行数据放到缓冲区最后一行，等等)，
@@ -221,23 +222,33 @@ int read_bmp_file(const char* bmp_file, unsigned char** rgb_buffer,
         tmp_buf = *rgb_buffer + rgb_size;
         for (i = 0; i < tmp_height; i++)
         {
-            free(*rgb_buffer);
-            ret = -1;
-            goto end;
+            tmp_buf -= width_byte;
+            ret = fread(tmp_buf, 1, width_byte, fp);
+            if (ret != width_byte)
+            {
+                free(*rgb_buffer);
+                ret = -1;
+                goto end;
+            }
+            fseek(fp, padding, SEEK_CUR);
         }
     }
-    else
+    else // 负高，顺序读
     {
         unsigned char* tmp_buf = *rgb_buffer;
-        size_t readByte = 0;
-        for (int i = 0; i < tmp_height; i++)
+        for (i = 0; i < tmp_height; i++)
         {
-            readByte += fread(tmp_buf, 1, width_byte, fp);
+            ret = fread(tmp_buf, 1, width_byte, fp);
+            if (ret != width_byte)
+            {
+                free(*rgb_buffer);
+                ret = -1;
+                goto end;
+            }
             fseek(fp, padding, SEEK_CUR);
             tmp_buf += width_byte;
         }
     }
-
 
 end:
     fclose(fp);
@@ -309,7 +320,7 @@ int write_bmp_file(const char* bmp_file, unsigned char* rgb_buffer, int width, i
     memset(tmp_buf, '\0', sizeof(char) * rgb_size);
     
     
-    // 有权威说法确认。。。
+    // TOCHECK:有权威说法确认。。。
     if (height > 0)
     {
         // 倒着拷贝到缓冲区
